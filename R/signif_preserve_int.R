@@ -11,6 +11,7 @@
 #' @param to_char Logical; if TRUE, return formatted character output
 #' @param big.mark Thousands separator
 #' @param decimal.mark Decimal separator
+#' @param max_decimals maximum number of decimals
 #' @param ... Passed to [base::prettyNum()]
 #'
 #' @return Numeric or character vector
@@ -21,6 +22,7 @@ signif_preserve_int <- function(
     to_char = FALSE,
     big.mark = NULL,
     decimal.mark = NULL,
+    max_decimals = NULL,
     ...
 ) {
 
@@ -49,6 +51,10 @@ signif_preserve_int <- function(
   is_whole <- abs(s - round(s)) < .Machine$double.eps^0.5
 
   z <- ifelse(is_whole, round(x, 0), s)
+
+  if (!is.null(max_decimals)) {
+    z <- round(z, max_decimals)
+  }
 
   if (to_char) {
     prettyNum(z, big.mark = big.mark, decimal.mark = decimal.mark, ...)

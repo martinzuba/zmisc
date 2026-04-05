@@ -10,6 +10,7 @@ signif_preserve_int(
   to_char = FALSE,
   big.mark = NULL,
   decimal.mark = NULL,
+  max_decimals = NULL,
   ...
 )
 }
@@ -23,6 +24,8 @@ signif_preserve_int(
 \item{big.mark}{Thousands separator}
 
 \item{decimal.mark}{Decimal separator}
+
+\item{max_decimals}{maximum number of decimals}
 
 \item{...}{Passed to \code{\link[base:formatc]{base::prettyNum()}}}
 }
