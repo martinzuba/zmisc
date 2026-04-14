@@ -49,35 +49,39 @@ signif_preserve_int <- function(
 ) {
 
   # validation
-  if (!is.numeric(x)) {
-    stop("`x` must be numeric")
-  }
+  v <- z_validator()
 
-  if (!is.numeric(digits) || length(digits) != 1 || is.na(digits) ||
-      digits < 1 || digits %% 1 != 0) {
-    stop("`digits` must be a single integer >= 1")
-  }
+  v$check(!is.numeric(x), "`x` must be numeric")
 
-  if (!is.null(max_decimals)) {
-    if (!is.numeric(max_decimals) || length(max_decimals) != 1 ||
-        is.na(max_decimals) || max_decimals < 0 || max_decimals %% 1 != 0) {
-      stop("`max_decimals` must be a single integer >= 0 or NULL")
-    }
-  }
+  v$check(
+    !is.numeric(digits) || length(digits) != 1 || is.na(digits) || digits < 1 || digits %% 1 != 0,
+    "`digits` must be a single integer >= 1"
+  )
+
+  v$check(
+    !is.null(max_decimals) &&
+      (!is.numeric(max_decimals) || length(max_decimals) != 1 ||
+         is.na(max_decimals) || max_decimals < 0 || max_decimals %% 1 != 0),
+    "`max_decimals` must be NULL or a single integer >= 0"
+  )
+
+  # throw errors if any
+  v$throw()
 
   # significant rounding
   s <- signif(x, digits)
 
   # detect near-integers safely
-  is_whole <- abs(s - round(s)) < .Machine$double.eps^0.5
+  is_whole <- !is.na(s) & (abs(s - round(s)) < .Machine$double.eps^0.5 * pmax(1, abs(s)))
 
-  z <- ifelse(is_whole, round(x, 0), s)
+  # replace with rounded value
+  s[is_whole] <- round(s, 0)
 
   if (!is.null(max_decimals)) {
-    z <- round(z, max_decimals)
+    s <- round(s, max_decimals)
   }
 
-  return(z)
+  return(s)
 
 }
 
@@ -133,38 +137,43 @@ signif_preserve_int <- function(
 #' @export
 first_digits <- function(x, digits, return_negative_sign = TRUE) {
 
-  # Error handling
-  errors <- character()
+  # input validation
+  v <- z_validator()
 
-  if (!is.numeric(x)) errors <- c(errors, "x must be numeric")
+  v$check(!is.numeric(x), "`x` must be numeric")
 
-  if (!is.numeric(digits) || any(is.na(digits)) || any(digits < 1) || any(digits %% 1 != 0)) {
-    errors <- c(errors, "`digits` must be integers >= 1")
+  v$check(
+    !is.numeric(digits) || any(is.na(digits)) ||
+      any(digits < 1) || any(digits %% 1 != 0),
+    "`digits` must be integers >= 1"
+  )
 
-  } else if (length(digits) > 1 && length(digits) != length(x)) errors <- c(errors, "length of `digits` must be 1 or length of `x`")
+  v$check(
+    length(digits) > 1 && length(digits) != length(x),
+    "`digits` must be length 1 or same length as `x`"
+  )
 
-  if (length(errors) > 0)
-    stop(paste(errors, collapse = ","))
+  v$throw()
 
   # replicate digits if necessary
   if (length(digits) == 1) {
-    digits <- rep(digits, length(x))
+    digits <- rep_len(digits, length(x))
   }
 
   # remove near-zeros
   x[x == 0] <- NA
 
   # sign handling
-  sgn <- ifelse(return_negative_sign, sign(x), 1)
+  sgn <- if (return_negative_sign) sign(x) else rep(1, length(x))
 
   # absolute value for processing
-  abs_x <- abs(x)
+  abs_x <- abs(x) + .Machine$double.eps
 
   # number of digits in each number
   num_digits <- floor(log10(abs_x)) + 1
 
   # calculate the divisor to get the first `digits` digits
-  divisor <- 10^(num_digits - digits)
+  divisor <- 10^(pmax(num_digits - digits, 0))
 
   # get the first `digits` digits
   result <- floor(abs_x / divisor) * sgn
