@@ -51,17 +51,17 @@ signif_preserve_int <- function(
   # validation
   v <- z_validator()
 
-  v$check(!is.numeric(x), "`x` must be numeric")
+  v$check(is.numeric(x), "`x` must be numeric")
 
   v$check(
-    !is.numeric(digits) || length(digits) != 1 || is.na(digits) || digits < 1 || digits %% 1 != 0,
+    is.numeric(digits) && length(digits) != 1 && !is.na(digits) && digits >= 1 && digits %% 1 == 0,
     "`digits` must be a single integer >= 1"
   )
 
   v$check(
-    !is.null(max_decimals) &&
-      (!is.numeric(max_decimals) || length(max_decimals) != 1 ||
-         is.na(max_decimals) || max_decimals < 0 || max_decimals %% 1 != 0),
+    is.null(max_decimals) ||
+      (is.numeric(max_decimals) && length(max_decimals) == 1 &&
+         !is.na(max_decimals) && max_decimals >= 0 && max_decimals %% 1 == 0),
     "`max_decimals` must be NULL or a single integer >= 0"
   )
 
