@@ -3,10 +3,15 @@ Title: A collection of miscellaneous functions
 Version: 0.1
 Authors@R: person(given = "Martin", family = "Zuba", email = "martin.zuba4@gmail.com", role = c("aut","cre"))
 Description: Small utility functions for data handling and formatting.
-License: GPL-3
+License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/martinzuba/zmisc
 BugReports: https://github.com/martinzuba/zmisc/issues
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+Suggests:
+    cli,
+    rlang,
+    statquotes,
+    fortunes

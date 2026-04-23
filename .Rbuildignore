@@ -1,3 +1,6 @@
 ^zmisc\.Rproj$
 ^\.Rproj\.user$
 ^README\.Rmd$
+^\.positai$
+^\.claude$
+^LICENSE\.md$

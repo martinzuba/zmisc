@@ -62,6 +62,7 @@
 #' copy(df)
 #' }
 #'
+#' @importFrom utils write.table
 #' @export
 copy <- function(
     x,

@@ -54,7 +54,7 @@ signif_preserve_int <- function(
   v$check(is.numeric(x), "`x` must be numeric")
 
   v$check(
-    is.numeric(digits) && length(digits) != 1 && !is.na(digits) && digits >= 1 && digits %% 1 == 0,
+    is.numeric(digits) && length(digits) == 1 && !is.na(digits) && digits >= 1 && digits %% 1 == 0,
     "`digits` must be a single integer >= 1"
   )
 
@@ -140,16 +140,18 @@ first_digits <- function(x, digits, return_negative_sign = TRUE) {
   # input validation
   v <- z_validator()
 
-  v$check(!is.numeric(x), "`x` must be numeric")
+  v$check(is.numeric(x), "`x` must be numeric")
 
   v$check(
-    !is.numeric(digits) || any(is.na(digits)) ||
-      any(digits < 1) || any(digits %% 1 != 0),
+    is.numeric(digits) &&
+      all(!is.na(digits)) &&
+      all(digits >= 1) &&
+      all(digits %% 1 == 0),
     "`digits` must be integers >= 1"
   )
 
   v$check(
-    length(digits) > 1 && length(digits) != length(x),
+    length(digits) == 1 || (length(digits) == length(x)),
     "`digits` must be length 1 or same length as `x`"
   )
 
