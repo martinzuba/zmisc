@@ -1,3 +1,84 @@
+
+
+html_table <- function(df) {
+
+  mat <- as.matrix(df)
+
+  paste(
+    "<table>",
+    paste0(
+      apply(mat, 1, function(row) {
+        paste0(
+          "<tr>",
+          paste0("<td>", row, "</td>", collapse = ""),
+          "</tr>"
+        )
+      }),
+      collapse = "\n"),
+    "</table>",
+    sep = "\n"
+  )
+
+}
+
+cf_html <- function(html_fragment) {
+
+  cf_header <- c(
+    "Version:0.9",
+    "StartHTML:00000000",
+    "EndHTML:00000000",
+    "StartFragment:00000000",
+    "EndFragment:00000000",
+    "<html><body><!--StartFragment-->"
+  )
+
+  prefix <- paste(cf_header, collapse = "\r\n")
+  suffix <- "<!--EndFragment--></body></html>"
+
+  full <- paste0(prefix, html_fragment, suffix)
+  full_utf8 <- enc2utf8(full)
+
+  # offsets computed from SAME byte string (critical fix)
+  start_fragment <- nchar(enc2utf8(prefix), type = "bytes")
+  end_fragment <- start_fragment + nchar(enc2utf8(html_fragment), type = "bytes")
+
+  start_html <- 0
+  end_html <- nchar(full_utf8, type = "bytes")
+
+  # inject offsets
+  full_utf8 <- sub(
+    "StartHTML:00000000",
+    sprintf("StartHTML:%08d", start_html),
+    full_utf8
+  )
+
+  full_utf8 <- sub(
+    "EndHTML:00000000",
+    sprintf("EndHTML:%08d", end_html),
+    full_utf8
+  )
+
+  full_utf8 <- sub(
+    "StartFragment:00000000",
+    sprintf("StartFragment:%08d", start_fragment),
+    full_utf8
+  )
+
+  full_utf8 <- sub(
+    "EndFragment:00000000",
+    sprintf("EndFragment:%08d", end_fragment),
+    full_utf8
+  )
+
+  full_utf8
+}
+
+
+
+
+
+
+
 #' Copy a data frame to the clipboard for Excel
 #'
 #' Copy a data frame or matrix to the system clipboard in a format that is
@@ -67,6 +148,7 @@
 copy <- function(
     x,
     file = "clipboard",
+    split_headers = NULL
     row.names = FALSE,
     col.names = TRUE,
     sep = "\t",
@@ -98,6 +180,8 @@ copy <- function(
       }
     }
   }
+
+
 
   write.table(x = x, file = file, sep = sep, dec = dec, row.names = row.names, col.names = col.names, na = na, ...)
 
