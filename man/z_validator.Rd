@@ -34,11 +34,14 @@ vector.
 
 A list with methods:
 \itemize{
-\item \code{check(condition, msg = NULL, msg_cli = NULL)}: Evaluates
-\code{condition} and, if \code{FALSE}, records an error message.
-The message is chosen in the following order: \code{msg_cli} (when
-\code{cli} is available), \code{msg}, or a default message derived
-from the unevaluated \code{condition} expression.
+\item \code{check(condition, msg = NULL, msg_cli = NULL,
+  type = "error")}: Evaluates \code{condition}. If it evaluates to
+\code{FALSE}, records either an error or warning depending on
+\code{type}. The message is chosen in the following order:
+\code{msg_cli} (when \code{cli} is available), \code{msg}, or a
+default message derived from the unevaluated \code{condition}
+expression. Invalid conditions (not a single logical value) are
+recorded as errors.
 \item \code{require_package(pkg, github_source = NULL)}: Checks if
 \code{pkg} is installed and, if not, records an error message with
 installation instructions. If \code{github_source} is provided, the
@@ -47,12 +50,16 @@ instructions point to GitHub via
 \code{install.packages()}.
 \item \code{errors()}: Returns the character vector of collected error
 messages.
-\item \code{throw()}: If any errors have been collected, throws them all
-at once via \code{cli::cli_abort()} if \code{cli} is available,
-otherwise via \code{stop()}. Returns \code{invisible(NULL)} if no
-errors are present.
-\item \code{clear()}: Resets the collected errors to an empty character
-vector.
+\item \code{warnings()}: Returns the character vector of collected
+warning messages.
+\item \code{throw()}: Emits all collected warnings and errors. Warnings
+are emitted first using \code{cli::cli_warn()} if \code{cli} is
+available, otherwise via \code{warning()}. Errors are then thrown using
+\code{cli::cli_abort()} if \code{cli} is available, otherwise via
+\code{stop()}. Returns \code{invisible(NULL)} if no messages have been
+collected.
+\item \code{clear()}: Resets the collected errors and warnings to empty
+character vectors.
 }
 }
 \description{
@@ -60,7 +67,9 @@ Creates a simple validator object used internally to accumulate validation
 errors during function execution without stopping immediately.
 
 Creates a simple validator object used internally to accumulate validation
-errors during function execution without stopping immediately.
+errors and warnings during function execution without stopping immediately.
+Messages are collected and can be emitted together at the end of a function
+call using \code{throw()}.
 }
 \details{
 Whether \code{cli} is available is checked once when the validator is
@@ -69,8 +78,11 @@ created, ensuring that \code{check()}, \code{require_package()}, and
 and error signaling.
 
 Whether \code{cli} is available is checked once when the validator is
-created, ensuring that \code{check()}, \code{require_package()}, and
-\code{throw()} consistently use the same backend for message formatting
-and error signaling.
+created. This ensures that all subsequent messages use the same backend for
+formatting and signalling.
+
+The validator allows functions to perform several input checks before
+stopping execution. This enables reporting multiple validation problems at
+once rather than failing at the first encountered issue.
 }
 \keyword{internal}
