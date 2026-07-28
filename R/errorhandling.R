@@ -35,18 +35,28 @@
 #' @export
 z_validator <- function() {
 
+  # initialise
   errors <- character()
-
   use_cli <- requireNamespace("cli", quietly = TRUE)
 
+  # check function: assess conditions
   check <- function(condition, msg = NULL, msg_cli = NULL) {
-    if (!condition) {
+
+    if (length(condition) != 1 || !is.logical(condition) || is.na(condition)) {
+      errors <<- c(errors, paste0("validation failed: condition must be a single logical value (TRUE/FALSE), but got: ", deparse(substitute(condition))))
+      return(invisible(NA))
+    }
+
+    if (!isTRUE(condition)) {
       errors <<- c(
         errors,
         if (use_cli && !is.null(msg_cli)) msg_cli else if (!is.null(msg)) msg else paste0("validation failed: ", deparse(substitute(condition))))
+      return(invisible(FALSE))
     }
+    return(invisible(TRUE))
   }
 
+  # check function: package available
   require_package <- function(pkg, github_source = NULL) {
     if (!requireNamespace(pkg, quietly = TRUE)) {
       if (use_cli) {
@@ -75,6 +85,7 @@ z_validator <- function() {
     }
   }
 
+  # throw all errors
   throw <- function(.call = NULL) {
     if (length(errors)) {
 
@@ -100,10 +111,12 @@ z_validator <- function() {
     return(invisible(NULL))
   }
 
+  # clear state
   clear <- function() {
     errors <<- character()
   }
 
+  # return class functions
   list(
     check = check,
     require_package = require_package,
